@@ -11,14 +11,15 @@ export default function Hero() {
             Timeless Craftsmanship
           </h1>
           <p className="max-w-md leading-relaxed text-gray-500 xl:text-lg">
-            Discover our collection of genuine leather goods, handcrafted to last a lifetime. Quality and elegance in every stitch.
+            Discover our collection of genuine leather goods, handcrafted to
+            last a lifetime. Quality and elegance in every stitch.
           </p>
         </div>
         <div className="mb-12 flex w-full md:mb-16 lg:w-2/3">
           <div className="relative left-12 top-12 z-10 -ml-12 overflow-hidden rounded-lg bg-gray-100 shadow-lg md:left-16 md:top-16 lg:ml-0">
             <Image
-              src="https://images.unsplash.com/photo-1617179918913-f4e099813fb5?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" // Replace with your image URL
-              alt="Handcrafted leather bags"
+              src="https://images.unsplash.com/photo-1637868796504-32f45a96d5a0?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" // Replace with your image URL
+              alt="Handcrafted leather accessories"
               className="h-full w-full object-cover object-center"
               width={500}
               height={500}
@@ -27,7 +28,7 @@ export default function Hero() {
           </div>
           <div className="overflow-hidden rounded-lg bg-gray-100 shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1472591651607-70e2d88ae3c4?q=80&w=1061&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" // Replace with your image URL
+              src="/img/hero_img.jpg" // Replace with your image URL
               alt="Leather wallet and accessories"
               className="h-full w-full object-cover object-center"
               width={500}

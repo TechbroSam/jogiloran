@@ -100,7 +100,7 @@ export default function LoginModal({ onSwitchToCreate, onSwitchToForgot, onClose
         </p>
       </div>
       <p className="mt-6 text-xs text-gray-500 text-center">
-        By logging into my account, I agree to Artisan Leather’s{' '}
+        By logging into my account, I agree to Axion Leather’s{' '}
         <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">Terms & Conditions</a> and{' '}
         <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">Privacy Policy</a>.
       </p>
