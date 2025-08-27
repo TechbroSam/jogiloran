@@ -1,7 +1,7 @@
 // src/app/products/[slug]/page.tsx
 import { client, urlFor } from "@/lib/sanity";
 import ProductCard from "@/components/ProductCard";
-import FilterSortControls from "@/components/FilterSortControls"; // Import the new component
+import FilterSortControls from "@/components/FilterSortControls";
 
 interface Product {
   _id: string;
@@ -11,27 +11,30 @@ interface Product {
   images: any;
 }
 
-// The component now accepts searchParams
 export default async function ProductListingPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ slug: string }>; // Type params as a Promise
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Type searchParams as a Promise
 }) {
-  const { slug } = params;
-  const sort = searchParams.sort as string || 'newest';
+  // Await params and searchParams to resolve their values
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
+  const { slug } = resolvedParams;
+  const sort = resolvedSearchParams.sort as string | undefined || 'newest'; // Safely access sort with a fallback
 
   // Determine the ordering for the GROQ query
-  let orderClause = '';
+  let orderClause = "";
   switch (sort) {
-    case 'price-asc':
+    case "price-asc":
       orderClause = `| order(price asc)`;
       break;
-    case 'price-desc':
+    case "price-desc":
       orderClause = `| order(price desc)`;
       break;
-    case 'name-asc':
+    case "name-asc":
       orderClause = `| order(name asc)`;
       break;
     default: // 'newest'
@@ -39,25 +42,30 @@ export default async function ProductListingPage({
   }
 
   // Determine the filtering for the GROQ query
-  let filterClause = '';
-  let pageTitle = '';
+  let filterClause = "";
+  let pageTitle = "";
   switch (slug) {
-    case 'newest':
+    case "newest":
       filterClause = `*[_type == "product"]`;
       pageTitle = "New Arrivals";
       break;
-    case 'bestsellers':
+    case "bestsellers":
       filterClause = `*[_type == "product" && isBestSeller == true]`;
       pageTitle = "Best Sellers";
       break;
     default:
       filterClause = `*[_type == "product" && category->slug.current == "${slug}"]`;
-      const category = await client.fetch(`*[_type == "category" && slug.current == "${slug}"][0]`);
+      const category = await client.fetch(
+        `*[_type == "category" && slug.current == "${slug}"][0]`
+      );
       pageTitle = category ? `Shop ${category.name}` : "Products";
   }
 
   // Combine the filter and order clauses into the final query
-  const fullQuery = filterClause + orderClause + `{
+  const fullQuery =
+    filterClause +
+    orderClause +
+    `{
     _id, name, price, slug, images[0]
   }`;
 
@@ -88,7 +96,9 @@ export default async function ProductListingPage({
               />
             ))
           ) : (
-            <p className="col-span-full text-center">No products found for this selection.</p>
+            <p className="col-span-full text-center">
+              No products found for this selection.
+            </p>
           )}
         </div>
       </div>

@@ -1,33 +1,92 @@
 // src/components/ForgotPasswordModal.tsx
 'use client';
 
+import { useState } from 'react';
+
 export default function ForgotPasswordModal({ onSwitchToLogin }: { onSwitchToLogin: () => void; }) {
-  const handleSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic to send reset email will be added here
-    alert('If an account with this email exists, a password reset link has been sent.');
+    setIsLoading(true);
+    setMessage('');
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Something went wrong.');
+      }
+
+      setMessage(data.message);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-2 text-center">Forgot Password</h2>
-      <p className="text-center text-gray-500 mb-6 text-sm">
-        Enter your email and we'll send you a link to reset your password.
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Email Address</label>
-          <input type="email" required className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
+      <h2 className="text-2xl font-bold mb-4 text-center">Forgot Password</h2>
+      
+      {message ? (
+        // --- SUCCESS VIEW ---
+        <div className="text-center">
+          <p className="text-green-600 mb-6">{message}</p>
+          <button onClick={onSwitchToLogin} className="w-full bg-orange-700 text-white py-3 rounded-md hover:bg-orange-800">
+            Back to Log In
+          </button>
         </div>
-        <button type="submit" className="w-full bg-orange-700 text-white py-3 rounded-md hover:bg-orange-800">
-          Send Reset Link
-        </button>
-      </form>
-      <div className="text-center mt-4">
-        <button onClick={onSwitchToLogin} className="font-semibold text-orange-700 hover:underline text-sm">
-          Back to Log In
-        </button>
-      </div>
+      ) : (
+        // --- FORM VIEW ---
+        <>
+          <p className="text-center text-gray-500 mb-6 text-sm">
+            Enter your email and we'll send you a link to reset your password.
+          </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email-forgot" className="sr-only">Email Address</label>
+              <input 
+                id="email-forgot"
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email Address"
+                required 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" 
+              />
+            </div>
+
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-orange-700 text-white py-3 rounded-md hover:bg-orange-800 disabled:bg-gray-400"
+            >
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
+            </button>
+          </form>
+
+          <div className="text-center mt-4">
+            <button onClick={onSwitchToLogin} className="font-semibold text-orange-700 hover:underline text-sm">
+              Back to Log In
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

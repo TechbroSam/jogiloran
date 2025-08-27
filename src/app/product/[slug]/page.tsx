@@ -1,11 +1,19 @@
 // src/app/product/[slug]/page.tsx
+'use client';
 
+import { useEffect, useState } from 'react';
 import { client, urlFor } from "@/lib/sanity";
 import ProductGallery from "@/components/ProductGallery";
-import AddToCartBtn from "@/components/AddToCartBtn";
-import { notFound } from 'next/navigation';
+import { useCartStore } from "@/lib/store";
 
-// Define the shape of the data we expect
+// Define the shape for a single size object
+interface SizeOption {
+  _key: string;
+  size: string;
+  stock: number;
+}
+
+// Define the shape for the full product details
 interface ProductDetail {
   _id: string;
   name: string;
@@ -13,79 +21,107 @@ interface ProductDetail {
   description: string;
   slug: { current: string };
   images: any[];
+  stock?: number; // Stock for non-sized products
+  sizes?: SizeOption[]; // Sizes for shoes
 }
 
-// Fetches the data for a single product based on its slug
-const getProductDetails = async (slug: string) => {
-  const query = `*[_type == "product" && slug.current == "${slug}"][0] {
-    _id, name, price, description, slug, images
-  }`;
-  const data = await client.fetch(query);
-  return data;
-};
+export default function ProductDetailPage({ params }: { params: { slug: string } }) {
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { addItem } = useCartStore();
 
-// Generates static pages for all products at build time for performance
-export async function generateStaticParams() {
-  const query = `*[_type == "product"] { "slug": slug.current }`;
-  const slugs: { slug: string }[] = await client.fetch(query);
+  useEffect(() => {
+    const getProductDetails = async (slug: string) => {
+      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}}`;
+      const data = await client.fetch(query);
+      setProduct(data);
+      if (data?.sizes?.length > 0) {
+        setSelectedSize(data.sizes[0]); // Select the first size object by default
+      }
+    };
+    getProductDetails(params.slug);
+  }, [params.slug]);
 
-  // Ensure slugs is an array before mapping over it to prevent errors
-  return (slugs || []).map((item) => ({
-    slug: item.slug,
-  }));
-}
-
-// The main page component
-export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product: ProductDetail = await getProductDetails(params.slug);
-
-  // If no product is found for the given slug, show a 404 page
-  if (!product) {
-    notFound();
-  }
-
-  // Prepare a clean product object to be added to the cart
-  const productForCart = {
-    _id: product._id,
-    name: product.name,
-    price: product.price,
-    imageUrl: urlFor(product.images[0]).url(),
-    quantity: 1,
+  const handleAddToCart = () => {
+    if (product?.sizes && product.sizes.length > 0 && !selectedSize) {
+      setError("Please select a size.");
+      return;
+    }
+    if (product) {
+      // For products with sizes, use the selected size's stock. Otherwise, use the general stock.
+      const stockLimit = selectedSize ? selectedSize.stock : product.stock || 0;
+      
+      addItem({
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        imageUrl: urlFor(product.images[0]).url(),
+        quantity: 1,
+        size: selectedSize?.size || undefined, // Pass the size string
+        stock: stockLimit,
+        slug: product.slug.current,
+      });
+      setError(null);
+      alert(`${product.name} ${selectedSize ? `(Size: ${selectedSize.size})` : ''} added to cart!`);
+    }
   };
+
+  if (!product) return <div className="text-center py-20">Loading...</div>;
+
+  const stockAvailable = selectedSize ? selectedSize.stock : product.stock || 0;
 
   return (
     <div className="bg-white py-6 sm:py-8">
       <div className="mx-auto max-w-screen-xl px-4 md:px-8">
         <div className="grid gap-8 md:grid-cols-2">
           <ProductGallery images={product.images} />
-
           <div className="md:py-8">
-            <div className="mb-2 md:mb-3">
-              <h2 className="text-2xl font-bold text-gray-800 lg:text-3xl">{product.name}</h2>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-800 lg:text-3xl">{product.name}</h2>
+            <p className="mt-2 text-xl font-bold text-gray-800">£{product.price.toFixed(2)}</p>
             
-            <div className="mb-4">
-              <div className="flex items-end gap-2">
-                <span className="text-xl font-bold text-gray-800 md:text-2xl">
-                  £{product.price.toFixed(2)}
-                </span>
+            {/* Size Selector */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-800 mb-2">Select Size</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size._key}
+                      onClick={() => { setSelectedSize(size); setError(null); }}
+                      // FIX: Compare the whole size object
+                      className={`px-4 py-2 border rounded-md text-sm transition ${
+                        selectedSize?._key === size._key
+                          ? 'bg-orange-700 text-white border-orange-700'
+                          : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
+                      } ${size.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={size.stock === 0}
+                    >
+                      {/* FIX: Render the size string, not the object */}
+                      {size.size} {size.stock === 0 && '(Out of Stock)'}
+                    </button>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            
+            <div className="flex gap-2.5 mt-6">
+              {stockAvailable > 0 ? (
+                <button onClick={handleAddToCart} className="flex-1 rounded-lg bg-orange-700 text-white px-8 py-3 text-center font-semibold hover:bg-orange-800">
+                  Add to Cart
+                </button>
+              ) : (
+                <button disabled className="flex-1 rounded-lg bg-gray-400 text-white px-8 py-3 text-center font-semibold cursor-not-allowed">
+                  Out of Stock
+                </button>
+              )}
             </div>
             
-            {/* You can add more details here if needed */}
-            <div className="mb-6 flex items-center gap-2 text-gray-500">
-              <p>Free Shipping</p>
-            </div>
-
-            <div className="flex gap-2.5">
-              <AddToCartBtn product={productForCart} />
-            </div>
-
-            <div className="mt-10 md:mt-16 lg:mt-20">
-              <div className="mb-3 text-lg font-semibold text-gray-800">Description</div>
-              <p className="text-gray-500">
-                {product.description}
-              </p>
+            <div className="mt-10">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Description</h3>
+              <p className="text-sm text-gray-500">{product.description}</p>
             </div>
           </div>
         </div>

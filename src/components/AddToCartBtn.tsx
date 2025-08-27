@@ -1,14 +1,19 @@
 // src/components/AddToCartBtn.tsx
-'use client';
+"use client";
 
-import { useCartStore, CartItem } from '@/lib/store';
+import { useCartStore, CartItem } from "@/lib/store";
 
-export default function AddToCartBtn({ product }: { product: CartItem }) {
+// Update the props to include the slug
+export default function AddToCartBtn({
+  product,
+}: {
+  product: CartItem & { slug: string };
+}) {
   const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = () => {
+    // The entire product object, including the slug, will be added
     addItem(product);
-    // You could add a user notification (a "toast") here
     console.log(`${product.name} added to cart`);
   };
 

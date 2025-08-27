@@ -1,39 +1,33 @@
 // src/lib/db.ts
 import mongoose from 'mongoose';
 
-// Augment the global type to include our mongoose property
-declare global {
-  var mongoose: any; // You can be more specific with the type if you want
-}
-
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+let cachedConnection: Promise<typeof mongoose> | null = null;
 
 async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
+  if (cachedConnection) {
+    return cachedConnection;
   }
 
-  if (!cached.promise) {
-    const opts = {
+  if (!cachedConnection) {
+    cachedConnection = mongoose.connect(MONGODB_URI!, {
       bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
     });
   }
-  cached.conn = await cached.promise;
-  return cached.conn;
+
+  try {
+    await cachedConnection;
+  } catch (e) {
+    cachedConnection = null;
+    throw e;
+  }
+
+  return cachedConnection;
 }
 
 export default dbConnect;

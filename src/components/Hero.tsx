@@ -18,7 +18,7 @@ export default function Hero() {
         <div className="mb-12 flex w-full md:mb-16 lg:w-2/3">
           <div className="relative left-12 top-12 z-10 -ml-12 overflow-hidden rounded-lg bg-gray-100 shadow-lg md:left-16 md:top-16 lg:ml-0">
             <Image
-              src="https://images.unsplash.com/photo-1637868796504-32f45a96d5a0?q=80&w=765&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" // Replace with your image URL
+              src="/img/hero_img_main.jpg" // Replace with your image URL
               alt="Handcrafted leather accessories"
               className="h-full w-full object-cover object-center"
               width={500}
@@ -29,7 +29,7 @@ export default function Hero() {
           <div className="overflow-hidden rounded-lg bg-gray-100 shadow-lg">
             <Image
               src="/img/hero_img.jpg" // Replace with your image URL
-              alt="Leather wallet and accessories"
+              alt="Man with leather backpack"
               className="h-full w-full object-cover object-center"
               width={500}
               height={500}
