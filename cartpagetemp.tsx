@@ -5,11 +5,17 @@ import { useCartStore } from "@/lib/store";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
-import { useState, useEffect } from "react"; // Only need these two hooks now
-import { client } from "@/lib/sanity";
+import { useEffect, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import PayPalButton from "@/components/PayPalButton";
+import { client } from "@/lib/sanity"; // Import sanity client
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function CartPage() {
   const { items, removeItem, increaseQuantity, decreaseQuantity } = useCartStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<{ discountPercentage?: number }>({});
 
   useEffect(() => {
@@ -25,6 +31,34 @@ export default function CartPage() {
   const discount = settings?.discountPercentage || 0;
   const discountAmount = (subtotal * discount) / 100;
   const total = subtotal - discountAmount;
+
+  const handleCheckout = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Send the items AND the discount to the Stripe API
+        body: JSON.stringify({ items, discount }),
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || "An unknown error occurred.");
+      }
+
+      const { sessionId } = await response.json();
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error("Stripe.js hasn't loaded yet.");
+
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+      if (stripeError) throw new Error(stripeError.message);
+    } catch (err: any) {
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white">
@@ -58,7 +92,7 @@ export default function CartPage() {
                           <p className="mt-1 text-sm font-medium text-gray-900">£{product.price.toFixed(2)}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 sm:pr-9">
-                          <div className="flex items-center rounded border">
+                          <div className="flex justify-between items-center rounded border px-3">
                             <button onClick={() => decreaseQuantity(product._id, product.size)} className="px-3 py-1 hover:bg-gray-100">-</button>
                             <span className="px-4 text-sm">{product.quantity}</span>
                             <button onClick={() => increaseQuantity(product._id, product.size)} disabled={product.quantity >= product.stock} className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">+</button>
@@ -85,8 +119,8 @@ export default function CartPage() {
             </ul>
           </section>
 
-          {/* Order summary */}
-          {items.length > 0 && (
+          {/* Order summary - Conditionally render if cart is not empty */}
+               {items.length > 0 && (
             <section
               aria-labelledby="summary-heading"
               className="mt-16 rounded-lg bg-gray-50 px-4 py-6 sm:p-6 lg:col-span-5 lg:mt-0 lg:p-8"
@@ -110,13 +144,25 @@ export default function CartPage() {
                   <dd className="text-base font-medium text-gray-900">£{total.toFixed(2)}</dd>
                 </div>
               </dl>
+              {error && (
+                <div className="text-center text-sm text-red-600 mt-4"><p>{error}</p></div>
+              )}
               <div className="mt-6">
-                <Link
-                  href="/checkout"
-                  className="w-full block text-center rounded-md border border-transparent bg-orange-700 py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-50"
-                >
-                  Proceed to Checkout
-                </Link>
+                <button onClick={handleCheckout} disabled={isLoading} className="w-full rounded-md border border-transparent bg-orange-700 py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-50 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                  {isLoading ? "Processing..." : "Checkout with Card"}
+                </button>
+              </div>
+              <div className="mt-4 relative">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-gray-50 px-2 text-sm text-gray-500">OR</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                 {/* Pass subtotal and discount to PayPal button */}
+                <PayPalButton subtotal={subtotal} discount={discount} />
               </div>
             </section>
           )}

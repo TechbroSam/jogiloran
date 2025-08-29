@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { IOrder } from '@/types/order';
 
-export default function AdminPage() {
+export default function AdminPage( { settings }: { settings?: any } ) {
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [shippingStatus, setShippingStatus] = useState<Record<string, boolean>>({});

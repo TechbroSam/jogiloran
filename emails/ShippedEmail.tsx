@@ -18,12 +18,12 @@ interface ShippedEmailProps {
 export const ShippedEmail = ({ orderId, shippedDate }: ShippedEmailProps) => (
   <Html>
     <Head />
-    <Preview>Your Artisan Leather Order has Shipped!</Preview>
+    <Preview>Your Axion Leather Order has Shipped!</Preview>
     <Body style={{ fontFamily: 'Helvetica, Arial, sans-serif', backgroundColor: '#f6f9fc' }}>
       <Container style={{ backgroundColor: '#ffffff', margin: '0 auto', padding: '20px', borderRadius: '8px' }}>
         <Heading style={{ fontSize: '24px', textAlign: 'center' }}>Your Order is on its way!</Heading>
         <Text style={{ fontSize: '16px', textAlign: 'center' }}>
-          Great news! Your order from Artisan Leather has been shipped on {shippedDate}.
+          Great news! Your order from Axion Leather has been shipped on {shippedDate}.
         </Text>
         <Text style={{ fontSize: '16px', textAlign: 'center' }}>
           <strong>Order ID:</strong> ...{orderId.slice(-6)}

@@ -1,49 +1,74 @@
 // src/components/PayPalButton.tsx
-'use client';
+"use client";
 
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useCartStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 
-export default function PayPalButton() {
+interface PayPalButtonProps {
+  subtotal: number;
+  discount: number;
+  shippingCost: number; // Accept shippingCost
+}
+
+export default function PayPalButton({
+  subtotal,
+  discount,
+  shippingCost,
+}: PayPalButtonProps) {
   const { items, clearCart } = useCartStore();
   const router = useRouter();
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
+  // Calculate final total including discount and shipping
+  const discountAmount = (subtotal * discount) / 100;
+  const total = subtotal - discountAmount + shippingCost;
+
+  if (!paypalClientId)
+    return (
+      <div className="text-center text-sm text-red-500">
+        PayPal is unavailable.
+      </div>
+    );
+
   return (
-    <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "GBP" }}>
+    <PayPalScriptProvider
+      options={{ clientId: paypalClientId, currency: "GBP" }}
+    >
       <PayPalButtons
-        style={{ layout: "vertical", color: "blue", shape: "rect", label: "paypal" }}
+        style={{
+          layout: "vertical",
+          color: "blue",
+          shape: "rect",
+          label: "paypal",
+        }}
         createOrder={async () => {
-          const res = await fetch('/api/paypal/create-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(items),
+          const res = await fetch("/api/paypal/create-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            // Send all three values to the backend
+            body: JSON.stringify({ items, subtotal, discount, shippingCost }),
           });
           const data = await res.json();
           return data.orderID;
         }}
         onApprove={async (data) => {
-          const res = await fetch('/api/paypal/capture-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const res = await fetch("/api/paypal/capture-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               orderID: data.orderID,
               cartItems: items,
             }),
           });
-          const orderData = await res.json();
-          if (orderData.success) {
+          if (res.ok) {
             clearCart();
-            router.push('/success');
+            router.push("/success");
           } else {
-            // Handle error
-            console.error('Failed to finalize PayPal order.');
+            console.error("Failed to finalize PayPal order.");
           }
         }}
-        onError={(err) => {
-          console.error("PayPal Checkout Error:", err);
-        }}
+        onError={(err) => console.error("PayPal Checkout Error:", err)}
       />
     </PayPalScriptProvider>
   );

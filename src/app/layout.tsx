@@ -1,9 +1,7 @@
 // src/app/layout.tsx
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
@@ -22,9 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* Add flexbox classes to the body */}
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <Providers> {/* Add the provider here */}
+        <Providers>
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />
