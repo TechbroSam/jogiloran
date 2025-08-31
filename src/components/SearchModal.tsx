@@ -7,11 +7,30 @@ import { client, urlFor } from '@/lib/sanity';
 import Link from 'next/link';
 import Image from 'next/image';
 
+// Reuse or define the Sanity image type
+interface SanityImageSource {
+  asset: {
+    _ref: string;
+  };
+  crop?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  hotspot?: {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+  };
+}
+
 interface Product {
   _id: string;
   name: string;
   slug: { current: string };
-  images: any;
+  images: SanityImageSource; // Use specific type instead of any
 }
 
 export default function SearchModal({ onClose }: { onClose: () => void }) {
@@ -26,9 +45,9 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
       try {
         setIsLoading(true);
         const query = `*[_type == "product"]{ _id, name, slug, images[0] }`;
-        const products = await client.fetch(query);
+        const products: Product[] = await client.fetch(query);
         setAllProducts(products || []); // Ensure it's an array
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Failed to fetch products for search:", error);
       } finally {
         setIsLoading(false);
@@ -76,7 +95,9 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
         {isLoading && <p className="text-gray-500 text-center py-4">Loading products...</p>}
         
         {!isLoading && searchTerm.trim() !== '' && filteredProducts.length === 0 && (
-          <p className="text-gray-500 text-center py-4">No products found for "{searchTerm}".</p>
+          <p className="text-gray-500 text-center py-4">
+            No products found for &quot;{searchTerm}&quot;.
+          </p>
         )}
         <ul className="divide-y divide-gray-200">
           {filteredProducts.map((product) => (

@@ -1,5 +1,4 @@
 // src/components/ProductCard.tsx
-
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -13,7 +12,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ _id, name, price, imageUrl, slug }: ProductCardProps) {
   return (
-    <Link href={`/product/${slug}`} className="group block">
+    <Link href={`/product/${slug}`} key={_id} className="group block">
       <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
         <Image
           src={imageUrl}

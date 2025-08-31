@@ -5,14 +5,33 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { urlFor } from '@/lib/sanity';
 
+// Define the Sanity image type (or import from shared type file)
+interface SanityImageSource {
+  asset: {
+    _ref: string;
+  };
+  crop?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  hotspot?: {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+  };
+}
+
 interface ProductGalleryProps {
-  images: any[];
+  images: SanityImageSource[];
 }
 
 export default function ProductGallery({ images }: ProductGalleryProps) {
-  const [mainImage, setMainImage] = useState(images[0]);
+  const [mainImage, setMainImage] = useState<SanityImageSource>(images[0]);
 
-  const handleThumbnailClick = (image: any) => {
+  const handleThumbnailClick = (image: SanityImageSource) => {
     setMainImage(image);
   };
 
@@ -20,7 +39,6 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
     <div className="grid lg:grid-cols-5 gap-4">
       <div className="order-last flex gap-4 lg:order-none lg:flex-col">
         {images.map((image, idx) => (
-          // Add 'aspect-square' and 'w-20' (or another width) here
           <div
             key={idx}
             className="aspect-square w-20 overflow-hidden rounded-lg bg-gray-100 cursor-pointer"

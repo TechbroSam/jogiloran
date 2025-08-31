@@ -9,9 +9,18 @@ import { authOptions } from '../../auth/[...nextauth]/route';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Extend the next-auth Session type to include isAdmin
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      isAdmin?: boolean;
+    } & import('next-auth').DefaultSession['user'];
+  }
+}
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!(session?.user as any)?.isAdmin) {
+  if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -45,13 +54,14 @@ export async function POST(request: Request) {
           shippedDate: new Date().toLocaleDateString('en-GB'),
         }),
       });
-    } catch (emailError) {
+    } catch (emailError: unknown) {
       console.error("!!! FAILED TO SEND SHIPPED CONFIRMATION EMAIL !!!", emailError);
     }
 
     return NextResponse.json({ order: updatedOrder });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Failed to ship order:", error);
-    return NextResponse.json({ error: 'Failed to update order status.' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update order status.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

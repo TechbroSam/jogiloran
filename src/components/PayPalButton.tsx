@@ -20,10 +20,6 @@ export default function PayPalButton({
   const router = useRouter();
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
-  // Calculate final total including discount and shipping
-  const discountAmount = (subtotal * discount) / 100;
-  const total = subtotal - discountAmount + shippingCost;
-
   if (!paypalClientId)
     return (
       <div className="text-center text-sm text-red-500">
@@ -68,7 +64,7 @@ export default function PayPalButton({
             console.error("Failed to finalize PayPal order.");
           }
         }}
-        onError={(err) => console.error("PayPal Checkout Error:", err)}
+        onError={(err: unknown) => console.error("PayPal Checkout Error:", err)}
       />
     </PayPalScriptProvider>
   );

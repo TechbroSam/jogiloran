@@ -2,29 +2,33 @@
 import Link from "next/link";
 import Image from "next/image";
 import { client, urlFor } from "@/lib/sanity";
-import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 
+// Define the Category interface with specific types
 interface Category {
   _id: string;
   name: string;
   slug: { current: string };
-  image: any;
+  image: {
+    asset: {
+      _ref: string;
+    };
+  }; // Matches Sanity's image type structure
 }
 
-const getCategories = async () => {
+// Explicitly type the return value of getCategories
+const getCategories = async (): Promise<Category[]> => {
   const query = `*[_type == "category"] {
     _id,
     name,
     slug,
     image
   }`;
-  const data = await client.fetch(query);
+  const data: Category[] = await client.fetch(query);
   return data;
 };
 
-
 export default async function ShopByCategory() {
-  const categories = await getCategories();
+  const categories: Category[] = await getCategories();
 
   return (
     <div className="bg-white">
@@ -33,14 +37,12 @@ export default async function ShopByCategory() {
           Shop by Category
         </h2>
         <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:gap-x-8">
-          {categories.map((category: { slug: { current: any; }; _id: Key | null | undefined; image: any; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
-            // FIX: The href now correctly points to the /products/ page
+          {categories.map((category: Category) => (
             <Link
               href={`/products/${category.slug.current}`}
               key={category._id}
               className="group relative block overflow-hidden rounded-lg"
             >
-              {/* The rest of the component remains the same */}
               <div className="aspect-[2/3] w-full bg-gray-200">
                 <Image
                   src={urlFor(category.image).url()}

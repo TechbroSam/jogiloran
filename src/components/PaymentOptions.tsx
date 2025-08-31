@@ -6,7 +6,7 @@ import PayPalButton from "./PayPalButton";
 import { useCartStore } from '@/lib/store';
 import { loadStripe } from '@stripe/stripe-js';
 
-// FIX: The variable name was incorrect. It's NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, not PUBLISHER_KEY.
+// FIX: The variable name was correct in your code
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 export default function PaymentOptions({ subtotal, discount, shippingCost }: { subtotal: number, discount: number, shippingCost: number }) {
@@ -21,7 +21,7 @@ export default function PaymentOptions({ subtotal, discount, shippingCost }: { s
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, subtotal, discount, shippingCost  }),
+        body: JSON.stringify({ items, subtotal, discount, shippingCost }),
       });
 
       if (!response.ok) {
@@ -35,8 +35,9 @@ export default function PaymentOptions({ subtotal, discount, shippingCost }: { s
 
       const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
       if (stripeError) throw new Error(stripeError.message);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
