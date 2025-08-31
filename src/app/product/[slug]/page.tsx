@@ -5,6 +5,16 @@ import { useEffect, useState } from 'react';
 import { client, urlFor } from "@/lib/sanity";
 import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
+import Reviews from '@/components/Reviews';
+
+// Define the shape for a review
+interface Review {
+  _id: string;
+  authorName: string;
+  rating: number;
+  reviewText: string;
+  _createdAt: string;
+}
 
 // Define the shape for a single size object
 interface SizeOption {
@@ -23,6 +33,7 @@ interface ProductDetail {
   images: any[];
   stock?: number; // Stock for non-sized products
   sizes?: SizeOption[]; // Sizes for shoes
+  reviews: Review[]; // Add reviews to the product type
 }
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
@@ -33,7 +44,8 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
 
   useEffect(() => {
     const getProductDetails = async (slug: string) => {
-      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}}`;
+      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)
+      }`;
       const data = await client.fetch(query);
       setProduct(data);
       if (data?.sizes?.length > 0) {
@@ -124,6 +136,10 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
               <p className="text-sm text-gray-500">{product.description}</p>
             </div>
           </div>
+        </div>
+         {/* Add the Reviews section at the bottom */}
+        <div className="mt-12">
+            <Reviews reviews={product.reviews} />
         </div>
       </div>
     </div>
