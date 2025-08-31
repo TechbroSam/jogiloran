@@ -6,7 +6,15 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { IOrder } from '@/types/order';
 
-export default function AdminPage( { settings }: { settings?: any } ) {
+// Define a more specific type for the user object in the session
+interface AdminSessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  isAdmin?: boolean;
+}
+
+export default function AdminPage() {
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [shippingStatus, setShippingStatus] = useState<Record<string, boolean>>({});
@@ -19,18 +27,26 @@ export default function AdminPage( { settings }: { settings?: any } ) {
       if (res.ok) {
         const data = await res.json();
         setOrders(data.orders);
+      } else {
+        console.error("Failed to fetch orders:", res.statusText);
       }
     } catch (error) {
-      console.error("Failed to fetch orders:", error);
+      console.error("An error occurred while fetching orders:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (status === 'authenticated' && (session?.user as any)?.isAdmin) {
-      fetchOrders();
-    } else if (status === 'unauthenticated' || (status === 'authenticated' && !(session?.user as any)?.isAdmin)) {
+    if (status === 'authenticated') {
+      const user = session.user as AdminSessionUser;
+      if (user?.isAdmin) {
+        fetchOrders();
+      } else {
+        router.push('/'); // Redirect if not admin
+      }
+    }
+    if (status === 'unauthenticated') {
       router.push('/');
     }
   }, [status, session, router]);
@@ -83,7 +99,6 @@ export default function AdminPage( { settings }: { settings?: any } ) {
                   )}
                 </div>
               </div>
-              {/* FIX: Add optional chaining to safely access shipping details */}
               {order.shippingAddress && (
                 <div className="mt-4 border-t pt-4">
                   <h4 className="font-semibold">Shipping Address</h4>
@@ -98,7 +113,7 @@ export default function AdminPage( { settings }: { settings?: any } ) {
               <div className="mt-4 border-t pt-4">
                 <h4 className="font-semibold">Items</h4>
                 <ul className="list-disc list-inside text-sm text-gray-600">
-                  {order.products.map((p: any, i: number) => <li key={i}>{p.name} (x{p.quantity})</li>)}
+                  {order.products.map((p, i) => <li key={i}>{p.name} (x{p.quantity})</li>)}
                 </ul>
               </div>
               <div className="mt-4 border-t pt-4">
