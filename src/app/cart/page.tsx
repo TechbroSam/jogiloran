@@ -58,7 +58,7 @@ export default function CartPage() {
                           <p className="mt-1 text-sm font-medium text-gray-900">£{product.price.toFixed(2)}</p>
                         </div>
                         <div className="mt-4 sm:mt-0 sm:pr-9">
-                          <div className="flex items-center rounded border">
+                          <div className="flex items-center justify-between rounded border px-2">
                             <button onClick={() => decreaseQuantity(product._id, product.size)} className="px-3 py-1 hover:bg-gray-100">-</button>
                             <span className="px-4 text-sm">{product.quantity}</span>
                             <button onClick={() => increaseQuantity(product._id, product.size)} disabled={product.quantity >= product.stock} className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">+</button>

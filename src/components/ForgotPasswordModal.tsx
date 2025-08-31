@@ -3,7 +3,11 @@
 
 import { useState } from 'react';
 
-export default function ForgotPasswordModal({ onSwitchToLogin }: { onSwitchToLogin: () => void; }) {
+interface ForgotPasswordModalProps {
+  onSwitchToLogin: () => void;
+}
+
+export default function ForgotPasswordModal({ onSwitchToLogin }: ForgotPasswordModalProps) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -30,8 +34,9 @@ export default function ForgotPasswordModal({ onSwitchToLogin }: { onSwitchToLog
 
       setMessage(data.message);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
