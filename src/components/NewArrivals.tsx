@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { client, urlFor } from "@/lib/sanity";
 import ProductCard from "./ProductCard";
+import { SanityImageSource } from '@/types/sanity';
 
 interface Product {
   _id: string;
   name: string;
   price: number;
   slug: { current: string };
-  images: any;
+  images: SanityImageSource; // Use specific type instead of any
 }
 
 const getNewestProducts = async () => {
@@ -20,7 +21,7 @@ const getNewestProducts = async () => {
     slug,
     images[0]
   }`;
-  const data = await client.fetch(query);
+  const data: Product[] = await client.fetch(query);
   return data;
 };
 

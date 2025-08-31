@@ -93,7 +93,7 @@ export default function LoginModal({ onSwitchToCreate, onSwitchToForgot, onClose
       </form>
       <div className="text-center mt-4">
         <p className="text-sm">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <button onClick={onSwitchToCreate} className="font-semibold text-orange-700 hover:underline">
             Create one
           </button>

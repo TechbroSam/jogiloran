@@ -3,6 +3,25 @@ import { client } from "@/lib/sanity";
 import Navbar from "./Navbar";
 import Banner from "./Banner";
 
+// Define the Sanity image type (or import from shared type file)
+interface SanityImageSource {
+  asset: {
+    _ref: string;
+  };
+  crop?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  hotspot?: {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+  };
+}
+
 interface Category {
   _id: string;
   name: string;
@@ -11,8 +30,8 @@ interface Category {
 
 interface SiteSettings {
   title?: string;
-  bannerMessage?: any[];
-  bannerImage?: any;
+  bannerMessage?: string[]; // Changed from any[] to string[]
+  bannerImage?: SanityImageSource; // Changed from any to SanityImageSource
   bannerUrl?: string;
   isBannerActive: boolean;
 }
@@ -23,7 +42,13 @@ const getCategories = async (): Promise<Category[]> => {
 };
 
 const getSiteSettings = async (): Promise<SiteSettings> => {
-  const query = `*[_type == "siteSettings"][0]`;
+  const query = `*[_type == "siteSettings"][0] {
+    title,
+    bannerMessage,
+    bannerImage,
+    bannerUrl,
+    isBannerActive
+  }`;
   return client.fetch(query);
 };
 

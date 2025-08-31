@@ -1,8 +1,6 @@
 // src/components/Modal.tsx
 'use client';
 
-import { X } from 'lucide-react';
-
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;

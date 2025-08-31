@@ -36,8 +36,9 @@ function ResetPasswordForm() {
       if (!res.ok) throw new Error(data.message || 'Failed to reset password.');
 
       setSuccess(data.message);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     }
   };
 
@@ -98,9 +99,9 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ResetPasswordForm />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }

@@ -13,27 +13,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
-  console.log("Stripe webhook received" + req);
+  console.log("Stripe webhook received", req);
   const body = await req.text();
 
-  // FIX: Get the headers object correctly
-  // FIX: Added 'await' to the headers() call
   const signature = (await headers()).get("stripe-signature") as string;
 
-  console.log("signasture" + signature);
+  console.log("signature", signature);
 
   let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-  } catch (err: any) {
-    console.error(`Webhook signature verification failed: ${err.message}`);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error(`Webhook signature verification failed: ${errorMessage}`);
     return NextResponse.json(
-      { error: `Webhook Error: ${err.message}` },
+      { error: `Webhook Error: ${errorMessage}` },
       { status: 400 }
     );
   }
-  console.log("event" + event);
+  console.log("event", event);
 
   // Handle the checkout.session.completed event
   if (event.type === "checkout.session.completed") {
@@ -41,15 +40,11 @@ export async function POST(req: Request) {
 
     // Retrieve the full session object to get all necessary details
     const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-      // FIX: Expand shipping_details and customer to ensure they are included
       expand: ["line_items.data.price.product", "customer"],
     });
 
-    // Use 'any' to bypass the type error and then safely access the properties
-    const sessionData = fullSession as any;
-    console.log(sessionData);
-    const lineItems: any[] = sessionData.line_items?.data || [];
-    const shippingDetails = sessionData.customer_details;
+    const lineItems: Stripe.LineItem[] = fullSession.line_items?.data || [];
+    const shippingDetails = fullSession.customer_details;
 
     const customerEmail = fullSession.customer_details?.email;
 
@@ -83,7 +78,6 @@ export async function POST(req: Request) {
         }),
         totalAmount: (fullSession.amount_total ?? 0) / 100,
         shippingAddress: {
-          // This will now be correctly populated
           name: shippingDetails?.name,
           address: {
             line1: shippingDetails?.address?.line1,
@@ -126,7 +120,7 @@ export async function POST(req: Request) {
           }
         }
         await transaction.commit();
-      } catch (stockError) {
+      } catch (stockError: unknown) {
         console.error(
           "!!! FAILED TO DECREMENT STOCK FOR STRIPE ORDER !!!",
           stockError
@@ -149,13 +143,13 @@ export async function POST(req: Request) {
           }),
         });
         // --- END EMAIL LOGIC ---
-      } catch (emailError) {
+      } catch (emailError: unknown) {
         console.error(
           "!!! FAILED TO SEND STRIPE CONFIRMATION EMAIL !!!",
           emailError
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error processing Stripe order:", error);
     }
   }

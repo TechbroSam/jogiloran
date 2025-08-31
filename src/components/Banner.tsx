@@ -5,13 +5,14 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PortableText } from '@portabletext/react';
+import { PortableText, PortableTextBlock } from '@portabletext/react';
 import { urlFor } from '@/lib/sanity';
+import { SanityImageSource } from '@/types/sanity';
 
 interface BannerProps {
   title?: string;
-  message?: any[];
-  image?: any;
+  message?: PortableTextBlock[]; // Changed from any[] to PortableTextBlock[]
+  image?: SanityImageSource; // Changed from any to SanityImageSource
   url?: string;
 }
 

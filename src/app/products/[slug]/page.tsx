@@ -3,12 +3,14 @@ import { client, urlFor } from "@/lib/sanity";
 import ProductCard from "@/components/ProductCard";
 import FilterSortControls from "@/components/FilterSortControls";
 
+import { SanityImageSource } from "@sanity/image-url/lib/types/types";
+
 interface Product {
   _id: string;
   name: string;
   price: number;
   slug: { current: string };
-  images: any;
+  images: SanityImageSource; // Use specific type instead of any
 }
 
 export default async function ProductListingPage({

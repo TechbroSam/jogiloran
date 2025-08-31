@@ -8,7 +8,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { Resend } from 'resend';
 import OrderConfirmationEmail from '../../../../../emails/OrderConfirmationEmail';
-    
+import { CartItem } from '@/types/cart';
+
+
 const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 const clientSecret = process.env.PAYPAL_CLIENT_SECRET!;
 const environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
   const loggedInSession = await getServerSession(authOptions);
 
   try {
-    const { orderID, cartItems } = await request.json();
+    const { orderID, cartItems }: { orderID: string; cartItems: CartItem[] } = await request.json();
     
     const paypalRequest = new paypal.orders.OrdersCaptureRequest(orderID);
     const capture = await client.execute(paypalRequest);
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     
     const newOrder = new Order({
       userEmail: userEmail,
-      products: cartItems.map((item: any) => ({
+      products: cartItems.map((item: CartItem) => ({
         productId: item._id,
         name: `${item.name}${item.size ? ` - Size: ${item.size}` : ''}`,
         quantity: item.quantity,
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
     // 1. Attempt to send confirmation email
     try {
       await resend.emails.send({
-        from: 'Axion Leather <sales@samuelobior.com>', // Replace with your verified email
+        from: 'Axion Leather <sales@samuelobior.com>',
         to: newOrder.userEmail,
         subject: `Order Confirmation - #${newOrder._id.toString().slice(-6)}`,
         react: OrderConfirmationEmail({
@@ -72,14 +74,14 @@ export async function POST(request: NextRequest) {
           products: newOrder.products,
         }),
       });
-    } catch (emailError) {
+    } catch (emailError: unknown) {
       console.error("!!! FAILED TO SEND PAYPAL CONFIRMATION EMAIL !!!", emailError);
     }
 
     // 2. Attempt to decrement stock in Sanity
     try {
       const transaction = sanityClient.transaction();
-      cartItems.forEach((item: any) => {
+      cartItems.forEach((item: CartItem) => {
         if (item.size) {
           transaction.patch(item._id, (p) => p.dec({ [`sizes[size=="${item.size}"].stock`]: item.quantity }));
         } else {
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
         }
       });
       await transaction.commit();
-    } catch (stockError) {
+    } catch (stockError: unknown) {
       console.error("!!! FAILED TO DECREMENT STOCK FOR PAYPAL ORDER !!!", stockError);
     }
     // --- END OF NON-CRITICAL TASKS ---
@@ -95,7 +97,7 @@ export async function POST(request: NextRequest) {
     // Since the order was saved, we can now send a success response to the frontend.
     return NextResponse.json({ success: true, orderId: newOrder._id });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Failed to capture PayPal order:", error);
     return NextResponse.json({ error: "Failed to capture order." }, { status: 500 });
   }

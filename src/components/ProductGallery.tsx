@@ -4,25 +4,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { urlFor } from '@/lib/sanity';
+import { SanityImageSource } from '@/types/sanity';
 
-// Define the Sanity image type (or import from shared type file)
-interface SanityImageSource {
-  asset: {
-    _ref: string;
-  };
-  crop?: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
-  hotspot?: {
-    x: number;
-    y: number;
-    height: number;
-    width: number;
-  };
-}
+
 
 interface ProductGalleryProps {
   images: SanityImageSource[];

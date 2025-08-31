@@ -4,7 +4,11 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
-export default function CreateAccountModal({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
+interface CreateAccountModalProps {
+  onSwitchToLogin: () => void;
+}
+
+export default function CreateAccountModal({ onSwitchToLogin }: CreateAccountModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -45,8 +49,9 @@ export default function CreateAccountModal({ onSwitchToLogin }: { onSwitchToLogi
         onSwitchToLogin();
       }, 2000);
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
     }
   };
 

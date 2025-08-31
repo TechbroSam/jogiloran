@@ -53,7 +53,7 @@ export default function ForgotPasswordModal({ onSwitchToLogin }: { onSwitchToLog
         // --- FORM VIEW ---
         <>
           <p className="text-center text-gray-500 mb-6 text-sm">
-            Enter your email and we'll send you a link to reset your password.
+            Enter your email and we&apos;ll send you a link to reset your password.
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

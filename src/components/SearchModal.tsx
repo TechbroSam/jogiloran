@@ -6,25 +6,8 @@ import { useEffect, useState } from 'react';
 import { client, urlFor } from '@/lib/sanity';
 import Link from 'next/link';
 import Image from 'next/image';
+import { SanityImageSource } from '@/types/sanity';
 
-// Reuse or define the Sanity image type
-interface SanityImageSource {
-  asset: {
-    _ref: string;
-  };
-  crop?: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
-  hotspot?: {
-    x: number;
-    y: number;
-    height: number;
-    width: number;
-  };
-}
 
 interface Product {
   _id: string;

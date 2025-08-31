@@ -3,17 +3,18 @@ import Link from "next/link";
 import { client, urlFor } from "@/lib/sanity";
 import ProductCard from "./ProductCard";
 
+import { SanityImageSource } from "@/types/sanity";
+
 interface Product {
   _id: string;
   name: string;
   price: number;
   slug: { current: string };
-  images: any;
+  images: SanityImageSource; // Use specific type instead of any
 }
 
-// 1. Renamed function to getBestSellers
 const getBestSellers = async () => {
-  // 2. Updated query to filter for isBestSeller == true
+  // GROQ query to get the 4 best-selling products
   const query = `*[_type == "product" && isBestSeller == true][0...4] {
     _id,
     name,
@@ -21,12 +22,11 @@ const getBestSellers = async () => {
     slug,
     images[0]
   }`;
-  const data = await client.fetch(query);
+  const data: Product[] = await client.fetch(query);
   return data;
 };
 
 export default async function BestSellers() {
-  // Use the correct function
   const products: Product[] = await getBestSellers();
 
   return (
@@ -36,7 +36,6 @@ export default async function BestSellers() {
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">
             Our Best Sellers
           </h2>
-          {/* 3. Updated the Link to the correct href */}
           <Link className="text-orange-700 hover:text-orange-800" href="/products/bestsellers">
             See All <span>&rarr;</span>
           </Link>

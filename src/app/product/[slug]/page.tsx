@@ -7,6 +7,8 @@ import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
 import Reviews from '@/components/Reviews';
 
+import { SanityImageSource } from '@/types/sanity';
+
 // Define the shape for a review
 interface Review {
   _id: string;
@@ -30,7 +32,7 @@ interface ProductDetail {
   price: number;
   description: string;
   slug: { current: string };
-  images: any[];
+  images: SanityImageSource[]; // Changed from any[] to SanityImageSource[]
   stock?: number; // Stock for non-sized products
   sizes?: SizeOption[]; // Sizes for shoes
   reviews: Review[]; // Add reviews to the product type
@@ -101,7 +103,6 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                     <button
                       key={size._key}
                       onClick={() => { setSelectedSize(size); setError(null); }}
-                      // FIX: Compare the whole size object
                       className={`px-4 py-2 border rounded-md text-sm transition ${
                         selectedSize?._key === size._key
                           ? 'bg-orange-700 text-white border-orange-700'
@@ -109,7 +110,6 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                       } ${size.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                       disabled={size.stock === 0}
                     >
-                      {/* FIX: Render the size string, not the object */}
                       {size.size} {size.stock === 0 && '(Out of Stock)'}
                     </button>
                   ))}
@@ -137,9 +137,9 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
             </div>
           </div>
         </div>
-         {/* Add the Reviews section at the bottom */}
+        {/* Add the Reviews section at the bottom */}
         <div className="mt-12">
-            <Reviews reviews={product.reviews} />
+          <Reviews reviews={product.reviews} />
         </div>
       </div>
     </div>

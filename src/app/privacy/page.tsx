@@ -39,7 +39,7 @@ export default function Privacy() {
       </p>
       <h2 className="text-xl font-semibold mt-8">How can I control cookies?</h2>
       <p>
-        You can control cookies through your web browser settings. For further information on how to disable cookies, please refer to your browser's help menu or documentation.
+        You can control cookies through your web browser settings. For further information on how to disable cookies, please refer to your browser&apos;s help menu or documentation.
       </p>
       <h2 className="text-xl font-semibold mt-8">Do we disclose any information to outside parties?</h2>
       <p>
