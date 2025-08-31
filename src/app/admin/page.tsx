@@ -67,7 +67,7 @@ export default function AdminPage() {
         alert(`Failed to mark as shipped: ${data.error}`);
       }
     } catch (error) {
-      alert("An error occurred while updating the order.");
+      console.error("An error occurred while updating the order.", error);
     } finally {
       setShippingStatus(prev => ({ ...prev, [orderId]: false }));
     }

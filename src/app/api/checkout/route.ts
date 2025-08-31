@@ -8,10 +8,6 @@ import { client as sanityClient } from "@/lib/sanity";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const getSiteSettings = async () => {
-  const query = `*[_type == "siteSettings"][0]{ discountPercentage }`;
-  return sanityClient.fetch(query);
-};
 
 interface SanityProduct {
   _id: string;
@@ -114,10 +110,12 @@ export async function POST(request: NextRequest) {
 
     const stripeSession = await stripe.checkout.sessions.create(params);
     return NextResponse.json({ sessionId: stripeSession.id });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    // Type-safe error handling
     console.error("Error creating Stripe session:", err);
+    const errorMessage = err instanceof Error ? err.message : "Error creating checkout session";
     return NextResponse.json(
-      { error: err.message || "Error creating checkout session" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

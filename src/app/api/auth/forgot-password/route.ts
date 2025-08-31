@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const fromEmail = process.env.FROM_EMAIL; // Add FROM_EMAIL to your .env.local
 
 export async function POST(request: Request) {
   try {
@@ -34,7 +33,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ message: 'A reset link has been sent.' });
-  } catch (error) {
+  } catch (err: any) {
     return NextResponse.json({ error: 'An error occurred.' }, { status: 500 });
   }
 }

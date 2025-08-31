@@ -1,17 +1,31 @@
 // src/app/api/auth/[...nextauth]/route.ts
-import NextAuth, { AuthOptions } from 'next-auth';
+import NextAuth, { AuthOptions, DefaultSession, DefaultUser } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+
+// Extend the default User type to include isAdmin
+interface CustomUser extends DefaultUser {
+  isAdmin?: boolean;
+}
+
+// Extend the default Session type to include isAdmin
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      isAdmin?: boolean;
+    } & DefaultSession['user'];
+  }
+}
 
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: {  label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
@@ -22,7 +36,6 @@ export const authOptions: AuthOptions = {
 
         const user = await User.findOne({ email: credentials.email });
 
-        // This is the single, correct block to check the password and return the user object
         if (user && (await bcrypt.compare(credentials.password, user.password))) {
           return {
             id: user._id.toString(),
@@ -31,11 +44,10 @@ export const authOptions: AuthOptions = {
             isAdmin: user.email === process.env.ADMIN_EMAIL,
           };
         }
-        
-        // Return null if user not found or password doesn't match
+
         return null;
-      }
-    })
+      },
+    }),
   ],
   pages: {
     signIn: '/', // Redirect to home page for login prompt
@@ -46,17 +58,17 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async jwt({ token, user }) {
-        if (user) {
-            token.isAdmin = (user as any).isAdmin;
-        }
-        return token;
+    async jwt({ token, user }: { token: any; user?: CustomUser }) {
+      if (user) {
+        token.isAdmin = user.isAdmin; // No need for 'any' since user is typed as CustomUser
+      }
+      return token;
     },
-    async session({ session, token }) {
-        if (session.user) {
-            (session.user as any).isAdmin = token.isAdmin;
-        }
-        return session;
+    async session({ session, token }: { session: any; token: any }) {
+      if (session.user) {
+        session.user.isAdmin = token.isAdmin; // No need for 'any' since session.user is extended
+      }
+      return session;
     },
   },
 };
