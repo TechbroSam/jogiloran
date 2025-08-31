@@ -47,7 +47,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: 'Password has been reset successfully.' });
 
-  } catch (err: any) {
-    return NextResponse.json({ message: 'An internal server error occurred.' }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('Error in reset-password route:', err);
+    const errorMessage = err instanceof Error ? err.message : 'An internal server error occurred.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

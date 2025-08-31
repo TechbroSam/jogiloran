@@ -1,5 +1,6 @@
 // src/app/api/auth/[...nextauth]/route.ts
-import NextAuth, { AuthOptions, DefaultSession, DefaultUser } from 'next-auth';
+import NextAuth, { AuthOptions, DefaultSession, DefaultUser, Session } from 'next-auth';
+import { JWT } from 'next-auth/jwt'; // Import JWT from next-auth/jwt
 import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
@@ -16,6 +17,13 @@ declare module 'next-auth' {
     user: {
       isAdmin?: boolean;
     } & DefaultSession['user'];
+  }
+}
+
+// Extend the JWT type to include isAdmin
+declare module 'next-auth/jwt' {
+  interface JWT {
+    isAdmin?: boolean;
   }
 }
 
@@ -58,15 +66,15 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: CustomUser }) {
+    async jwt({ token, user }: { token: JWT; user?: CustomUser }) {
       if (user) {
-        token.isAdmin = user.isAdmin; // No need for 'any' since user is typed as CustomUser
+        token.isAdmin = user.isAdmin; // Type-safe: token is typed as JWT, which includes isAdmin
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
-        session.user.isAdmin = token.isAdmin; // No need for 'any' since session.user is extended
+        session.user.isAdmin = token.isAdmin; // Type-safe: session.user is extended, token is JWT
       }
       return session;
     },

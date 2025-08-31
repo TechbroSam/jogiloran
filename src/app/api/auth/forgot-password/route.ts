@@ -33,7 +33,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ message: 'A reset link has been sent.' });
-  } catch (err: any) {
-    return NextResponse.json({ error: 'An error occurred.' }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('Error in forgot-password route:', err);
+    const errorMessage = err instanceof Error ? err.message : 'An error occurred.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

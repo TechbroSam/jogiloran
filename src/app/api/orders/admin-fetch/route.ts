@@ -5,10 +5,20 @@ import { authOptions } from '../../auth/[...nextauth]/route';
 import dbConnect from '@/lib/db';
 import Order from '@/models/Order';
 
+// Extend the next-auth Session type to include isAdmin
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      isAdmin?: boolean;
+    } & import('next-auth').DefaultSession['user'];
+  }
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions);
+
   // Ensure the user is an admin
-  if (!(session?.user as any)?.isAdmin) {
+  if (!session?.user?.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -16,7 +26,9 @@ export async function GET() {
     await dbConnect();
     const orders = await Order.find({}).sort({ createdAt: -1 });
     return NextResponse.json({ orders });
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Error fetching orders:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch orders';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
