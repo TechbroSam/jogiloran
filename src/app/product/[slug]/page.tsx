@@ -1,12 +1,11 @@
 // src/app/product/[slug]/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { client, urlFor } from "@/lib/sanity";
 import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
 import Reviews from '@/components/Reviews';
-
 import { SanityImageSource } from '@/types/sanity';
 
 // Define the shape for a review
@@ -32,13 +31,14 @@ interface ProductDetail {
   price: number;
   description: string;
   slug: { current: string };
-  images: SanityImageSource[]; // Changed from any[] to SanityImageSource[]
-  stock?: number; // Stock for non-sized products
-  sizes?: SizeOption[]; // Sizes for shoes
-  reviews: Review[]; // Add reviews to the product type
+  images: SanityImageSource[];
+  stock?: number;
+  sizes?: SizeOption[];
+  reviews: Review[];
 }
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
+// Child component to handle resolved params
+function ProductDetailContent({ slug }: { slug: string }) {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,16 +46,15 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
 
   useEffect(() => {
     const getProductDetails = async (slug: string) => {
-      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)
-      }`;
+      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
       const data = await client.fetch(query);
       setProduct(data);
       if (data?.sizes?.length > 0) {
-        setSelectedSize(data.sizes[0]); // Select the first size object by default
+        setSelectedSize(data.sizes[0]);
       }
     };
-    getProductDetails(params.slug);
-  }, [params.slug]);
+    getProductDetails(slug);
+  }, [slug]);
 
   const handleAddToCart = () => {
     if (product?.sizes && product.sizes.length > 0 && !selectedSize) {
@@ -63,7 +62,6 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
       return;
     }
     if (product) {
-      // For products with sizes, use the selected size's stock. Otherwise, use the general stock.
       const stockLimit = selectedSize ? selectedSize.stock : product.stock || 0;
       
       addItem({
@@ -72,7 +70,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
         price: product.price,
         imageUrl: urlFor(product.images[0]).url(),
         quantity: 1,
-        size: selectedSize?.size || undefined, // Pass the size string
+        size: selectedSize?.size || undefined,
         stock: stockLimit,
         slug: product.slug.current,
       });
@@ -137,11 +135,21 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
             </div>
           </div>
         </div>
-        {/* Add the Reviews section at the bottom */}
         <div className="mt-12">
           <Reviews reviews={product.reviews} />
         </div>
       </div>
     </div>
+  );
+}
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
+
+  return (
+    <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
+      <ProductDetailContent slug={slug} />
+    </Suspense>
   );
 }
