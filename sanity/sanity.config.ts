@@ -1,17 +1,14 @@
-// sanity.config.ts
-
-
-import { structureTool, type StructureBuilder } from 'sanity/structure'
-import { visionTool } from '@sanity/vision'
-import { schemaTypes } from './schemaTypes'
-import { defineConfig } from 'sanity'
+// sanity/sanity.config.ts
+import { defineConfig } from 'sanity'; // Corrected import path
+import { structureTool, type StructureBuilder } from 'sanity/structure';
+import { visionTool } from '@sanity/vision';
+import { schemaTypes } from './schemaTypes';
 
 // Custom desk structure for singletons
 const myStructure = (S: StructureBuilder) =>
   S.list()
     .title('Content')
     .items([
-      // Our singleton 'Site Settings' document
       S.listItem()
         .title('Site Settings')
         .id('siteSettings')
@@ -21,16 +18,14 @@ const myStructure = (S: StructureBuilder) =>
             .documentId('siteSettings')
         ),
       S.divider(),
-      
-      // The rest of our document types, but filtering out the singleton
       ...S.documentTypeListItems().filter(
         listItem => !['siteSettings'].includes(listItem.getId()!)
       ),
-    ])
+    ]);
 
 export default defineConfig({
   name: 'default',
-  title: 'Axion Leather',
+  title: 'Artisan Leather',
   projectId: '0rbd2qvr',
   dataset: 'production',
 
@@ -44,4 +39,4 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
   },
-})
+});
