@@ -1,8 +1,9 @@
 // sanity/sanity.config.ts
-import { defineConfig } from 'sanity'; // Corrected import path
-import { structureTool, type StructureBuilder } from 'sanity/structure';
-import { visionTool } from '@sanity/vision';
-import { schemaTypes } from './schemaTypes';
+
+import {structureTool, type StructureBuilder} from 'sanity/structure'
+import {visionTool} from '@sanity/vision'
+import {schemaTypes} from './schemaTypes'
+import { PluginOptions, DocumentDefinition, PreviewConfig } from 'sanity'
 
 // Custom desk structure for singletons
 const myStructure = (S: StructureBuilder) =>
@@ -12,16 +13,12 @@ const myStructure = (S: StructureBuilder) =>
       S.listItem()
         .title('Site Settings')
         .id('siteSettings')
-        .child(
-          S.document()
-            .schemaType('siteSettings')
-            .documentId('siteSettings')
-        ),
+        .child(S.document().schemaType('siteSettings').documentId('siteSettings')),
       S.divider(),
       ...S.documentTypeListItems().filter(
-        listItem => !['siteSettings'].includes(listItem.getId()!)
+        (listItem) => !['siteSettings'].includes(listItem.getId()!),
       ),
-    ]);
+    ])
 
 export default defineConfig({
   name: 'default',
@@ -32,11 +29,15 @@ export default defineConfig({
   plugins: [
     structureTool({
       structure: myStructure,
-    }), 
-    visionTool()
+    }),
+    visionTool(),
   ],
 
   schema: {
     types: schemaTypes,
   },
-});
+})
+function defineConfig(arg0: { name: string; title: string; projectId: string; dataset: string; plugins: PluginOptions[]; schema: { types: (({ type: "document"; name: "product" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "category" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "siteSettings" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "review" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<{ author: string; rating: string; product: string }, Record<"product" | "rating" | "author", any>> | undefined }))[] } }) {
+  throw new Error('Function not implemented.')
+}
+
