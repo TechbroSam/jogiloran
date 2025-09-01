@@ -1,8 +1,10 @@
 // sanity.config.ts
-import { defineConfig } from 'sanity'
+
+
 import { structureTool, type StructureBuilder } from 'sanity/structure'
 import { visionTool } from '@sanity/vision'
 import { schemaTypes } from './schemaTypes'
+import { defineConfig } from 'sanity'
 
 // Custom desk structure for singletons
 const myStructure = (S: StructureBuilder) =>
