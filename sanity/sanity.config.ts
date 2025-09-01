@@ -1,9 +1,8 @@
 // sanity/sanity.config.ts
-
+import {defineConfig} from 'sanity' // Corrected import path
 import {structureTool, type StructureBuilder} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
-import { PluginOptions, DocumentDefinition, PreviewConfig } from 'sanity'
 
 // Custom desk structure for singletons
 const myStructure = (S: StructureBuilder) =>
@@ -37,7 +36,3 @@ export default defineConfig({
     types: schemaTypes,
   },
 })
-function defineConfig(arg0: { name: string; title: string; projectId: string; dataset: string; plugins: PluginOptions[]; schema: { types: (({ type: "document"; name: "product" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "category" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "siteSettings" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<Record<string, string>, Record<never, any>> | undefined }) | ({ type: "document"; name: "review" } & Omit<DocumentDefinition, "preview"> & { preview?: PreviewConfig<{ author: string; rating: string; product: string }, Record<"product" | "rating" | "author", any>> | undefined }))[] } }) {
-  throw new Error('Function not implemented.')
-}
-
