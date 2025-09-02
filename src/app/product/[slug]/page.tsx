@@ -16,14 +16,12 @@ interface Review {
   reviewText: string;
   _createdAt: string;
 }
-
 // Define the shape for a single size object
 interface SizeOption {
   _key: string;
   size: string;
   stock: number;
 }
-
 // Define the shape for the full product details
 interface ProductDetail {
   _id: string;
@@ -38,7 +36,15 @@ interface ProductDetail {
   reviews: Review[];
 }
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
+// Correctly define the page's props
+interface ProductPageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export default function ProductDetailPage({ params }: ProductPageProps) {
+  const { slug } = params; // Directly access slug from params
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +52,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
 
   useEffect(() => {
     const getProductDetails = async () => {
-      const query = `*[_type == "product" && slug.current == "${params.slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
+      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
       const data = await client.fetch(query);
       setProduct(data);
       if (data?.sizes?.length > 0) {
@@ -54,7 +60,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
       }
     };
     getProductDetails();
-  }, [params.slug]);
+  }, [slug]);
 
   const handleAddToCart = () => {
     if (product?.sizes && product.sizes.length > 0 && !selectedSize) {
