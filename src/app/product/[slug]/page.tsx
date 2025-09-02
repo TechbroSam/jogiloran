@@ -38,7 +38,7 @@ interface ProductDetail {
   reviews: Review[];
 }
 
-// Define the page's props (params is not a Promise in client components)
+// Define the page's props for a client component
 interface ProductPageProps {
   params: { slug: string };
 }
