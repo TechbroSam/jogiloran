@@ -21,6 +21,7 @@
     "react-dom": "^19.1",
     "sanity": "^4.6.0",
     "styled-components": "^6.1.19"
+    
   },
   "devDependencies": {
     "@sanity/eslint-config-studio": "^5.0.2",
