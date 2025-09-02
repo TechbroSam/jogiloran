@@ -16,12 +16,14 @@ interface Review {
   reviewText: string;
   _createdAt: string;
 }
+
 // Define the shape for a single size object
 interface SizeOption {
   _key: string;
   size: string;
   stock: number;
 }
+
 // Define the shape for the full product details
 interface ProductDetail {
   _id: string;
@@ -36,15 +38,13 @@ interface ProductDetail {
   reviews: Review[];
 }
 
-// Correctly define the page's props
+// Define the page's props with params as a Promise
 interface ProductPageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
-export default function ProductDetailPage({ params }: ProductPageProps) {
-  const { slug } = params; // Directly access slug from params
+export default async function ProductDetailPage({ params }: ProductPageProps) {
+  const { slug } = await params; // Await the params to resolve the slug
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
