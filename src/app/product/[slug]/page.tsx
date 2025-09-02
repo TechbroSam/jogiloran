@@ -38,22 +38,33 @@ interface ProductDetail {
   reviews: Review[];
 }
 
-// Define the page's props for a client component
+// Define the page's props for a client component - params is now a Promise
 interface ProductPageProps {
-  params: { slug: string };
+  params: Promise<{
+    slug: string;
+  }>;
 }
 
 export default function ProductDetailPage({ params }: ProductPageProps) {
-  const { slug } = params; // Directly access slug from params
+  const [resolvedParams, setResolvedParams] = useState<{ slug: string } | null>(null);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { addItem } = useCartStore();
 
+  // Resolve the params promise
   useEffect(() => {
+    params.then(setResolvedParams).catch(() => {
+      setError("Failed to load product parameters.");
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (!resolvedParams) return;
+
     const getProductDetails = async () => {
       try {
-        const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
+        const query = `*[_type == "product" && slug.current == "${resolvedParams.slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
         const data = await client.fetch(query);
         setProduct(data);
         if (data?.sizes?.length > 0) {
@@ -64,7 +75,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
       }
     };
     getProductDetails();
-  }, [slug]);
+  }, [resolvedParams]);
 
   const handleAddToCart = () => {
     if (product?.sizes && product.sizes.length > 0 && !selectedSize) {
@@ -88,7 +99,8 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
     }
   };
 
-  if (!product) return <div className="text-center py-20">Loading...</div>;
+  if (!resolvedParams) return <div className="text-center py-20">Loading parameters...</div>;
+  if (!product) return <div className="text-center py-20">Loading product...</div>;
 
   const stockAvailable = selectedSize ? selectedSize.stock : product.stock || 0;
 
