@@ -6,6 +6,7 @@ import { client, urlFor } from "@/lib/sanity";
 import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
 import Reviews from '@/components/Reviews';
+import { SanityImageSource } from '@/types/sanity';
 
 // Define the shape for a review
 interface Review {
@@ -30,7 +31,8 @@ interface ProductDetail {
   price: number;
   description: string;
   slug: { current: string };
-  images: any[];
+  current: string;
+  images: SanityImageSource[];
   stock?: number;
   sizes?: SizeOption[];
   reviews: Review[];
