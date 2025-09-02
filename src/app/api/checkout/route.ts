@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
     }));
 
-    const origin = request.headers.get("origin") || "http://localhost:3000";
+    const origin = request.headers.get("origin") || "https://axionleather.netlify.app/";
 
     const params: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],

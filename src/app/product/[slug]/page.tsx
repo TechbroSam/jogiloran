@@ -1,12 +1,11 @@
 // src/app/product/[slug]/page.tsx
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { client, urlFor } from "@/lib/sanity";
 import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
 import Reviews from '@/components/Reviews';
-import { SanityImageSource } from '@/types/sanity';
 
 // Define the shape for a review
 interface Review {
@@ -31,30 +30,29 @@ interface ProductDetail {
   price: number;
   description: string;
   slug: { current: string };
-  images: SanityImageSource[];
+  images: any[];
   stock?: number;
   sizes?: SizeOption[];
   reviews: Review[];
 }
 
-// Child component to handle resolved params
-function ProductDetailContent({ slug }: { slug: string }) {
+export default function ProductDetailPage({ params }: { params: { slug: string } }) {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { addItem } = useCartStore();
 
   useEffect(() => {
-    const getProductDetails = async (slug: string) => {
-      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
+    const getProductDetails = async () => {
+      const query = `*[_type == "product" && slug.current == "${params.slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
       const data = await client.fetch(query);
       setProduct(data);
       if (data?.sizes?.length > 0) {
         setSelectedSize(data.sizes[0]);
       }
     };
-    getProductDetails(slug);
-  }, [slug]);
+    getProductDetails();
+  }, [params.slug]);
 
   const handleAddToCart = () => {
     if (product?.sizes && product.sizes.length > 0 && !selectedSize) {
@@ -63,7 +61,6 @@ function ProductDetailContent({ slug }: { slug: string }) {
     }
     if (product) {
       const stockLimit = selectedSize ? selectedSize.stock : product.stock || 0;
-      
       addItem({
         _id: product._id,
         name: product.name,
@@ -84,15 +81,14 @@ function ProductDetailContent({ slug }: { slug: string }) {
   const stockAvailable = selectedSize ? selectedSize.stock : product.stock || 0;
 
   return (
-    <div className="bg-white py-6 sm:py-8">
-      <div className="mx-auto max-w-screen-xl px-4 md:px-8">
+    <div className="bg-white">
+      <div className="mx-auto max-w-screen-xl px-4 md:px-8 py-6">
         <div className="grid gap-8 md:grid-cols-2">
           <ProductGallery images={product.images} />
           <div className="md:py-8">
             <h2 className="text-2xl font-bold text-gray-800 lg:text-3xl">{product.name}</h2>
             <p className="mt-2 text-xl font-bold text-gray-800">£{product.price.toFixed(2)}</p>
             
-            {/* Size Selector */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-2">Select Size</h3>
@@ -135,21 +131,11 @@ function ProductDetailContent({ slug }: { slug: string }) {
             </div>
           </div>
         </div>
+        
         <div className="mt-12">
           <Reviews reviews={product.reviews} />
         </div>
       </div>
     </div>
-  );
-}
-
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const { slug } = resolvedParams;
-
-  return (
-    <Suspense fallback={<div className="text-center py-20">Loading...</div>}>
-      <ProductDetailContent slug={slug} />
-    </Suspense>
   );
 }
