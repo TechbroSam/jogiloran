@@ -38,13 +38,13 @@ interface ProductDetail {
   reviews: Review[];
 }
 
-// Define the page's props with params as a Promise
+// Define the page's props (params is not a Promise in client components)
 interface ProductPageProps {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
-export default async function ProductDetailPage({ params }: ProductPageProps) {
-  const { slug } = await params; // Await the params to resolve the slug
+export default function ProductDetailPage({ params }: ProductPageProps) {
+  const { slug } = params; // Directly access slug from params
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [selectedSize, setSelectedSize] = useState<SizeOption | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +52,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   useEffect(() => {
     const getProductDetails = async () => {
-      const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
-      const data = await client.fetch(query);
-      setProduct(data);
-      if (data?.sizes?.length > 0) {
-        setSelectedSize(data.sizes[0]);
+      try {
+        const query = `*[_type == "product" && slug.current == "${slug}"][0]{..., "sizes": sizes[]{_key, size, stock}, "reviews": *[_type == "review" && product._ref == ^._id] | order(_createdAt desc)}`;
+        const data = await client.fetch(query);
+        setProduct(data);
+        if (data?.sizes?.length > 0) {
+          setSelectedSize(data.sizes[0]);
+        }
+      } catch (err) {
+        setError("Failed to load product details.");
       }
     };
     getProductDetails();
