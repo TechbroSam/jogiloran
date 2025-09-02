@@ -1,5 +1,5 @@
 // sanity/sanity.config.ts
-import {defineConfig} from 'sanity' // Corrected import path
+import {defineConfig} from 'sanity'
 import {structureTool, type StructureBuilder} from 'sanity/structure'
 import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
@@ -21,7 +21,7 @@ const myStructure = (S: StructureBuilder) =>
 
 export default defineConfig({
   name: 'default',
-  title: 'Artisan Leather',
+  title: 'Axion Leather',
   projectId: '0rbd2qvr',
   dataset: 'production',
 

@@ -4,7 +4,7 @@
 import { useCartStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { client } from "@/lib/sanity";
-import ShippingAddressForm from "@/components/ShippingAddressForm";
+import ShippingAddressForm, { Address } from "@/components/ShippingAddressForm"; // Import the Address type
 import OrderSummary from "@/components/OrderSummary";
 import PaymentOptions from "@/components/PaymentOptions";
 import Link from "next/link";
@@ -14,6 +14,7 @@ export default function CheckoutPage() {
   const [settings, setSettings] = useState<{ discountPercentage?: number }>({});
   const [shippingCost, setShippingCost] = useState(0);
   const [isAddressSubmitted, setIsAddressSubmitted] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState<Address | null>(null);
   
   useEffect(() => {
     if (items.length === 0) {
@@ -29,6 +30,12 @@ export default function CheckoutPage() {
   
   const discount = settings?.discountPercentage || 0;
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  // This function handles the submitted address
+  const handleAddressSubmit = (address: Address) => {
+    setShippingAddress(address); // Save the address
+    setIsAddressSubmitted(true); // Show the payment options
+  };
 
   return (
     <div className="bg-white">
@@ -46,7 +53,7 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-medium text-gray-900">Shipping Address</h2>
               <ShippingAddressForm 
                 onShippingCostChange={setShippingCost} 
-                onAddressSubmit={setIsAddressSubmitted} 
+                onAddressSubmit={handleAddressSubmit} // Use the new handler function
               />
             </div>
           </main>
@@ -58,7 +65,12 @@ export default function CheckoutPage() {
             {isAddressSubmitted && (
               <div className="mt-6 border-t pt-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Payment</h2>
-                <PaymentOptions subtotal={subtotal} discount={discount} shippingCost={shippingCost} />
+                <PaymentOptions 
+                  subtotal={subtotal} 
+                  discount={discount} 
+                  shippingCost={shippingCost} 
+                  shippingAddress={shippingAddress} // Pass address to payment options
+                />
               </div>
             )}
           </aside>

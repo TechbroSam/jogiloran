@@ -5,14 +5,15 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PortableText, PortableTextBlock } from '@portabletext/react';
+import { PortableText } from '@portabletext/react';
 import { urlFor } from '@/lib/sanity';
+import type { PortableTextBlock } from '@portabletext/types'; // Import the correct type
 import { SanityImageSource } from '@/types/sanity';
 
 interface BannerProps {
   title?: string;
-  message?: PortableTextBlock[]; // Changed from any[] to PortableTextBlock[]
-  image?: SanityImageSource; // Changed from any to SanityImageSource
+  message?: PortableTextBlock[]; // Use the imported type
+  image?: SanityImageSource;
   url?: string;
 }
 
@@ -37,9 +38,9 @@ export default function Banner({ title, message, image, url }: BannerProps) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mx-auto text-center sm:text-left">
         <div className="text-sm leading-6 text-gray-900">
           {title && <strong className="font-semibold">{title}</strong>}
-          <span className="sm:inline-block sm:ml-2">
+          <div className="sm:inline-block sm:ml-2">
             {message && <PortableText value={message} />}
-          </span>
+          </div>
         </div>
       </div>
       <div className="flex flex-1 justify-end">

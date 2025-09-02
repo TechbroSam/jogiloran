@@ -4,28 +4,28 @@
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useCartStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { Address } from "./ShippingAddressForm"; // Import the Address type
 
 interface PayPalButtonProps {
   subtotal: number;
   discount: number;
   shippingCost: number; // Accept shippingCost
+   shippingAddress: Address | null; // Accept the address
 }
 
 export default function PayPalButton({
   subtotal,
   discount,
   shippingCost,
+  shippingAddress,
 }: PayPalButtonProps) {
   const { items, clearCart } = useCartStore();
   const router = useRouter();
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
 
-  if (!paypalClientId)
-    return (
-      <div className="text-center text-sm text-red-500">
-        PayPal is unavailable.
-      </div>
-    );
+  if (!paypalClientId || !shippingAddress) {
+    return <div className="text-center text-sm text-gray-500 py-3">Please confirm address to use PayPal.</div>;
+  }
 
   return (
     <PayPalScriptProvider
@@ -43,7 +43,7 @@ export default function PayPalButton({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             // Send all three values to the backend
-            body: JSON.stringify({ items, subtotal, discount, shippingCost }),
+            body: JSON.stringify({ items, subtotal, discount, shippingCost, shippingAddress }),
           });
           const data = await res.json();
           return data.orderID;

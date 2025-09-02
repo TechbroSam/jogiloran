@@ -5,7 +5,7 @@ import dbConnect from '@/lib/db';
 import Order from '@/models/Order';
 import { writeClient as sanityClient } from '@/lib/sanity';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from "@/lib/auth";
 import { Resend } from 'resend';
 import OrderConfirmationEmail from '../../../../../emails/OrderConfirmationEmail';
 import { CartItem } from '@/types/cart';

@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 
-interface Address {
+// Export the Address interface so other components can use it
+export interface Address {
   name: string;
   address1: string;
   city: string;

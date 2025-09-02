@@ -1,9 +1,11 @@
-// src/components/Header.tsx
 import { client } from "@/lib/sanity";
+
+import type { PortableTextBlock } from '@portabletext/types'; // Import the correct type
+
 import Navbar from "./Navbar";
 import Banner from "./Banner";
 
-// Define the Sanity image type (or import from shared type file)
+// Define the Sanity image type
 interface SanityImageSource {
   asset: {
     _ref: string;
@@ -30,10 +32,11 @@ interface Category {
 
 interface SiteSettings {
   title?: string;
-  bannerMessage?: string[]; // Changed from any[] to string[]
-  bannerImage?: SanityImageSource; // Changed from any to SanityImageSource
+  bannerMessage?: PortableTextBlock[];
+  bannerImage?: SanityImageSource;
   bannerUrl?: string;
   isBannerActive: boolean;
+  discountPercentage?: number;
 }
 
 const getCategories = async (): Promise<Category[]> => {
@@ -47,30 +50,29 @@ const getSiteSettings = async (): Promise<SiteSettings> => {
     bannerMessage,
     bannerImage,
     bannerUrl,
-    isBannerActive
+    isBannerActive,
+    discountPercentage
   }`;
   return client.fetch(query);
 };
 
 export default async function Header() {
-  // Fetch both sets of data in parallel for performance
   const [categories, settings] = await Promise.all([
     getCategories(),
     getSiteSettings(),
   ]);
-  
+
   return (
     <>
-      {/* Conditionally render the Banner based on the fetched settings */}
       {settings?.isBannerActive && (
-        <Banner 
-          message={settings.bannerMessage} 
+        <Banner
+          message={settings.bannerMessage}
           title={settings.title}
           image={settings.bannerImage}
-          url={settings.bannerUrl} 
+          url={settings.bannerUrl}
+          // Note: discountPercentage is not passed to Banner in your current setup
         />
       )}
-      {/* Pass the fetched categories down to the Navbar */}
       <Navbar categories={categories || []} />
     </>
   );

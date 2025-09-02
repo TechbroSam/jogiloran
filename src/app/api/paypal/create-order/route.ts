@@ -11,7 +11,7 @@ const client = new paypal.core.PayPalHttpClient(environment);
 export async function POST(request: NextRequest) {
   try {
     // Receive items, discount, AND shippingCost from the request
-    const { items: cartItems, discount, shippingCost } = await request.json();
+    const { items: cartItems, discount, shippingCost, shippingAddress } = await request.json();
     
     const itemTotal = cartItems.reduce((acc: number, item: CartItem) => acc + item.price * item.quantity, 0);
     const discountAmount = (itemTotal * (discount || 0)) / 100;
@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
     paypalRequest.prefer("return=representation");
     paypalRequest.requestBody({
       intent: 'CAPTURE',
+        // Pre-fill the shipping information for PayPal
+      application_context: {
+        shipping_preference: 'SET_PROVIDED_ADDRESS',
+      },
       purchase_units: [{
         amount: {
           currency_code: 'GBP',
@@ -46,6 +50,17 @@ export async function POST(request: NextRequest) {
             tax_total: { currency_code: 'GBP', value: '0.00' },
           }
         },
+        shipping: {
+          name: {
+            full_name: shippingAddress.name,
+          },
+          address: {
+            address_line_1: shippingAddress.address1,
+            admin_area_2: shippingAddress.city,
+            postal_code: shippingAddress.postalCode,
+            country_code: shippingAddress.country,
+          }
+        }
       }],
     });
 

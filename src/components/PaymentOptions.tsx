@@ -5,11 +5,21 @@ import { useState } from 'react';
 import PayPalButton from "./PayPalButton";
 import { useCartStore } from '@/lib/store';
 import { loadStripe } from '@stripe/stripe-js';
+import { Address } from './ShippingAddressForm'; // Import the Address type
 
 // FIX: The variable name was correct in your code
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export default function PaymentOptions({ subtotal, discount, shippingCost }: { subtotal: number, discount: number, shippingCost: number }) {
+// Update props to accept shippingAddress
+interface PaymentOptionsProps {
+  subtotal: number;
+  discount: number;
+  shippingCost: number;
+  shippingAddress: Address | null;
+}
+
+
+export default function PaymentOptions({ subtotal, discount, shippingCost, shippingAddress }: PaymentOptionsProps) {
   const { items } = useCartStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +31,7 @@ export default function PaymentOptions({ subtotal, discount, shippingCost }: { s
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, subtotal, discount, shippingCost }),
+        body: JSON.stringify({ items, subtotal, discount, shippingCost, shippingAddress }),
       });
 
       if (!response.ok) {
@@ -46,7 +56,7 @@ export default function PaymentOptions({ subtotal, discount, shippingCost }: { s
     <div>
       <button
         onClick={handleStripeCheckout}
-        disabled={isLoading}
+        disabled={isLoading || !shippingAddress}
         className="w-full rounded-md border border-transparent bg-black py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-gray-800 disabled:bg-gray-500"
       >
         {isLoading ? 'Processing...' : 'Pay with Card'}
@@ -63,7 +73,12 @@ export default function PaymentOptions({ subtotal, discount, shippingCost }: { s
         </div>
       </div>
       <div className="mt-4">
-        <PayPalButton subtotal={subtotal} discount={discount} shippingCost={shippingCost} />
+            <PayPalButton 
+            subtotal={subtotal} 
+            discount={discount} 
+            shippingCost={shippingCost}
+            shippingAddress={shippingAddress}
+        />
       </div>
     </div>
   );

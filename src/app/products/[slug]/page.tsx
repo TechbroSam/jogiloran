@@ -1,33 +1,29 @@
-// src/app/products/[slug]/page.tsx
+import { type NextPage } from "next";
 import { client, urlFor } from "@/lib/sanity";
 import ProductCard from "@/components/ProductCard";
 import FilterSortControls from "@/components/FilterSortControls";
-
-import { SanityImageSource } from "@sanity/image-url/lib/types/types";
+import { SanityImageSource } from "@/types/sanity";
 
 interface Product {
   _id: string;
   name: string;
   price: number;
   slug: { current: string };
-  images: SanityImageSource; // Use specific type instead of any
+  imageUrl: SanityImageSource;
 }
 
-export default async function ProductListingPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ slug: string }>; // Type params as a Promise
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Type searchParams as a Promise
-}) {
-  // Await params and searchParams to resolve their values
-  const resolvedParams = await params;
+// Updated props to use Promise for params and searchParams
+interface ProductListingPageProps {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+const ProductListingPage: NextPage<ProductListingPageProps> = async ({ params, searchParams }) => {
+  // Resolve the Promise for params and searchParams
+  const { slug } = await params;
   const resolvedSearchParams = await searchParams;
+  const sort = (resolvedSearchParams.sort as string) || "newest";
 
-  const { slug } = resolvedParams;
-  const sort = resolvedSearchParams.sort as string | undefined || 'newest'; // Safely access sort with a fallback
-
-  // Determine the ordering for the GROQ query
   let orderClause = "";
   switch (sort) {
     case "price-asc":
@@ -39,11 +35,10 @@ export default async function ProductListingPage({
     case "name-asc":
       orderClause = `| order(name asc)`;
       break;
-    default: // 'newest'
+    default:
       orderClause = `| order(_createdAt desc)`;
   }
 
-  // Determine the filtering for the GROQ query
   let filterClause = "";
   let pageTitle = "";
   switch (slug) {
@@ -63,29 +58,20 @@ export default async function ProductListingPage({
       pageTitle = category ? `Shop ${category.name}` : "Products";
   }
 
-  // Combine the filter and order clauses into the final query
-  const fullQuery =
-    filterClause +
-    orderClause +
-    `{
-    _id, name, price, slug, images[0]
+  const fullQuery = `${filterClause} ${orderClause} {
+    _id, name, price, slug, "imageUrl": images[0]
   }`;
 
   const products: Product[] = await client.fetch(fullQuery);
 
   return (
     <div className="bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:py-24 lg:max-w-7xl lg:px-8">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-            {pageTitle}
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900">{pageTitle}</h2>
         </div>
-
-        {/* Add the Filter/Sort Controls */}
         <FilterSortControls />
-
-        <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+        <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {products.length > 0 ? (
             products.map((product) => (
               <ProductCard
@@ -94,16 +80,16 @@ export default async function ProductListingPage({
                 name={product.name}
                 price={product.price}
                 slug={product.slug.current}
-                imageUrl={urlFor(product.images).url()}
+                imageUrl={urlFor(product.imageUrl).url()}
               />
             ))
           ) : (
-            <p className="col-span-full text-center">
-              No products found for this selection.
-            </p>
+            <p className="col-span-full text-center">No products found for this selection.</p>
           )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProductListingPage;
