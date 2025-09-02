@@ -7,6 +7,7 @@ import ProductGallery from "@/components/ProductGallery";
 import { useCartStore } from "@/lib/store";
 import Reviews from '@/components/Reviews';
 import { SanityImageSource } from '@/types/sanity';
+import ReviewForm from '@/components/ReviewForm';
 
 // Define the shape for a review
 interface Review {
@@ -157,7 +158,8 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
         </div>
         
         <div className="mt-12">
-          <Reviews reviews={product.reviews} />
+           <Reviews reviews={product.reviews} />
+          <ReviewForm productId={product._id} />
         </div>
       </div>
     </div>
