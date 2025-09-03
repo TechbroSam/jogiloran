@@ -53,20 +53,20 @@ export default function ShippingAddressForm({ onShippingCostChange, onAddressSub
       <div className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-2" />
         </div>
         <div>
           <label htmlFor="address1" className="block text-sm font-medium text-gray-700">Address Line 1</label>
-          <input type="text" id="address1" name="address1" value={formData.address1} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+          <input type="text" id="address1" name="address1" value={formData.address1} onChange={handleChange} required className="mt-1 px-2 block w-full rounded-md border-gray-300 shadow-sm" />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
-            <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+            <input type="text" id="city" name="city" value={formData.city} onChange={handleChange} required className="mt-1 px-2 block w-full rounded-md border-gray-300 shadow-sm" />
           </div>
           <div>
             <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal Code</label>
-            <input type="text" id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm" />
+            <input type="text" id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleChange} required className="mt-1 px-2 block w-full rounded-md border-gray-300 shadow-sm" />
           </div>
         </div>
         <div>
