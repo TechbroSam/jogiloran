@@ -1,8 +1,0 @@
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-
-4000056655665556
-
-4242424242424242
-
-
-a2eda0ee-c33e-40cd-9656-6fa3f56fee75
